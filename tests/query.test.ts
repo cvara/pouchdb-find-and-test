@@ -88,7 +88,7 @@ describe('mango querying', () => {
     done();
   });
 
-  it('[unexpected] $and on same array property w/ same operator', async done => {
+  it('[unexpected] $and on same array property w/ same operator ($elemMatch + $regex)', async done => {
     // 1st query
     const { docs } = await db.find({
       selector: {
@@ -99,6 +99,28 @@ describe('mango querying', () => {
           {
             // 👇 overrides first condition, "bananas" is ignored
             likes: { $elemMatch: { $regex: /apples/i } },
+          },
+        ],
+      },
+    });
+    console.log('Characters that like "bananas" AND "apples": \n', docs);
+    // 👇 this fails, result contains characters that like just apples
+    expect(docs.length).toBe(1);
+    expect(docs[0].name).toBe('Darth Vader');
+
+    done();
+  });
+
+  it('[unexpected] $and on same array property w/ same operator ($elemMatch + $eq)', async done => {
+    const { docs } = await db.find({
+      selector: {
+        $and: [
+          {
+            likes: { $elemMatch: { $eq: 'bananas' } },
+          },
+          {
+            // 👇 overrides first condition, "bananas" is ignored
+            likes: { $elemMatch: { $eq: 'apples' } },
           },
         ],
       },
